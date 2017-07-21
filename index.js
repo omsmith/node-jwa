@@ -23,6 +23,9 @@ function bufferOrString(obj) {
 function normalizeInput(thing) {
   if (!bufferOrString(thing))
     thing = JSON.stringify(thing);
+  if (typeof thing === 'string') {
+	  thing = Buffer.from(thing, 'binary');
+  }
   return thing;
 }
 
@@ -30,6 +33,9 @@ function createHmacSigner(bits) {
   return function sign(thing, secret) {
     if (!bufferOrString(secret))
       throw typeError(MSG_INVALID_SECRET);
+	if (typeof secret === 'string') {
+		secret = Buffer.from(secret, 'binary');
+	}
     thing = normalizeInput(thing);
     var hmac = crypto.createHmac('sha' + bits, secret);
     var sig = (hmac.update(thing), hmac.digest('base64'))

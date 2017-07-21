@@ -34,7 +34,7 @@ const ecdsaWrongPublicKey = {
 
 const BIT_DEPTHS = ['256', '384', '512'];
 
-test('HMAC signing, verifying', function (t) {
+test('HMAC signing, verifying, round-trip', function (t) {
   const input = 'eugene mirman';
   const secret = 'shhhhhhhhhh';
   BIT_DEPTHS.forEach(function (bits) {
@@ -47,6 +47,17 @@ test('HMAC signing, verifying', function (t) {
   t.end();
 });
 
+test('HMAC signing, verifying, node.js version interop', function (t) {
+  const input = 'eugene mirman';
+  const secret = require('crypto').createHash('sha256').update('secret', 'binary').digest('binary');
+  const expected = 'UsIZ0HcQLO3K_Dlz0206dlzp_mrY-JVdJXcjyauyo9k';
+
+  const hs256 = jwa('hs256');
+  const sig = hs256.sign(input, secret);
+  t.equal(sig, expected, 'output signature should match node.js v4');
+  t.end();
+});
+
 test('RSA signing, verifying', function (t) {
   const input = 'h. jon benjamin';
   BIT_DEPTHS.forEach(function (bits) {
@@ -55,6 +66,15 @@ test('RSA signing, verifying', function (t) {
     t.ok(algo.verify(input, sig, rsaPublicKey), 'should verify');
     t.notOk(algo.verify(input, sig, rsaWrongPublicKey), 'shoud not verify');
   });
+  t.end();
+});
+
+test('RSA signing, verifying, node.js version interop', function (t) {
+  const input = 'h. jon benjamin';
+  const node4sig = 'nUPbBWZKMre6XkFUtFq6sMT83TuXc6KogHONMOqwKdVia-4Ra9sjfGxuWjfvtiqGDuXe1IhsNX5y1D29nmWKFBor8Sxl99NYE3c_kP-Zf0u2gubbxbGJKuq_waUbtRuG4rfoZRv0P0xZ3_C8lK00Lua8tqd-M2S4eeFO2cZ7-W-tnFFA0tJ13Dj07q5jmHriif8FA2hPB9YLiDFapz7QlId-TcMvTGUMGXX93kZQ5WhBRjQ-O6nA44Fxt40PkpXfuY2OnLBOFcK4XnxCLVHXKUXCiqvT3uUomEBYP8d6r0_lb41nyRdN2jsa1V0PEWOs2CaoJwTCCVk9mvDckCHdIQ';
+
+  const rs256 = jwa('rs256');
+  t.ok(rs256.verify(input, node4sig, rsaPublicKey))
   t.end();
 });
 
